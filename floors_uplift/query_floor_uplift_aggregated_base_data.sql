@@ -41,6 +41,7 @@ base_with_control_domain as (
             'clevergoat.com', 'anyconv.com', 'studylight.org', 'leconnections.app', 'stopots.com', 'example2.com', 'fantasysixpack.net', 'pop.deals', 'tpointtech.com'
             ) control_domain
     from base
+    where device_category in ('tablet', 'smartphone', 'desktop', 'smartphone-ios')
 ),
 
 control AS

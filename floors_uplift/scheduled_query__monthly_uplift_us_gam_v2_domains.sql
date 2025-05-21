@@ -1,10 +1,10 @@
-DECLARE from_backfill_date DATE DEFAULT DATE_SUB(CURRENT_DATE(), INTERVAL 2 DAY);
-DECLARE to_backfill_date_exclusive DATE DEFAULT CURRENT_DATE();
+DECLARE from_backfill_date DATE DEFAULT date_sub(date_trunc(CURRENT_DATE(), month), interval 1 month);
+DECLARE to_backfill_date_exclusive DATE DEFAULT date_trunc(CURRENT_DATE(), month);
 
 
 BEGIN TRANSACTION;
-DELETE FROM floors_us.daily_uplift_us_gam_v2_domain_daily WHERE date >= from_backfill_date AND date < to_backfill_date_exclusive;
-INSERT INTO floors_us.daily_uplift_us_gam_v2_domain_daily
+DELETE FROM floors_us.daily_uplift_us_gam_v2_domain_monthly WHERE date >= from_backfill_date AND date < to_backfill_date_exclusive;
+INSERT INTO floors_us.daily_uplift_us_gam_v2_domain_monthly
 
 
 WITH base AS (
@@ -70,9 +70,17 @@ aggregated_base_data as (
     select * from optimised
 ),
 
+aggregated_base_data_month as (
+    select date_trunc(date, month) date, domain, country_code, device_category, control, sum(ad_requests) ad_requests, sum(rev) rev
+    from aggregated_base_data
+    where device_category in ('tablet', 'smartphone', 'desktop', 'smartphone-ios')
+        and date < '2025-5-1'
+    group by 1, 2, 3, 4, 5
+),
+
 aggregated_base_data_with_continent as (
     select *
-    from aggregated_base_data
+    from aggregated_base_data_month
     join `sublime-elixir-273810.ideal_ad_stack.continent_country_mapping` on country_code = geo_country
 ),
 
